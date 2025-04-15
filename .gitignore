@@ -1,3 +1,8 @@
 /.env
 /test.py
 /__pycache__
+/app/__pycache__
+/app/data_base/__pycache__
+/app/route/__pycache__
+/app/security/__pycache__
+app/utils/__pycache__

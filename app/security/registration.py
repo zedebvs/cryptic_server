@@ -46,8 +46,7 @@ def registration(new_user):
             return True
         except:
             return False
-        
-if __name__ == __init__:
+
     print(registration(new_user))
 
 
