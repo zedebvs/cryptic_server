@@ -47,7 +47,7 @@ def registration(new_user):
         except:
             return False
 
-    print(registration(new_user))
+print(registration(new_user))
 
 
     
