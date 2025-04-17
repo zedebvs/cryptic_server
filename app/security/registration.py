@@ -1,39 +1,26 @@
 import os
-from app.utils import whitlists
-from app.utils import hash
+from app.utils import whitlists, hash
 from app.data_base.models import User
 from app.data_base.db_setup import SessionLocal
-#import time
+from fastapi import HTTPException
 
-
-test_new_user ={
-    "name" : "zebvs31211",
-    "email" : "zedvs@g1ma312il.com123",
-    "password" : "zed12lj321ko3"
-}
-
-new_user = User(
-    name=test_new_user["name"],
-    email=test_new_user["email"],
-    password=test_new_user["password"],
-)
 
 def registration(new_user):
     with SessionLocal() as db:
         if not whitlists.valid_username(new_user.name):
-            return "bad name"
+            raise HTTPException(status_code=400, detail="bad name")
         
         if not whitlists.valid_email(new_user.email):
-            return "bad email"
+            raise HTTPException(status_code=400, detail="bad email")
         
         if len(new_user.password) < 8:
-            return "bad password"
+            raise HTTPException(status_code=400, detail="bad password")
         
-        if db.query(User).filter(User.name == new_user.name).first() != None:
-            return "Name exists"
+        if db.query(User).filter(User.name == new_user.name).first() is not None:
+            raise HTTPException(status_code=400, detail="Name exists")
         
-        if db.query(User).filter(User.email == new_user.email).first() != None:
-            return "Email exists"
+        if db.query(User).filter(User.email == new_user.email).first() is not None:
+            raise HTTPException(status_code=400, detail="Email exists")
         
         salt = os.urandom(32).hex()
         password_hash = hash.hash_password(new_user.password, salt)
@@ -45,9 +32,8 @@ def registration(new_user):
             db.refresh(welcome_to_Cryptic)
             return True
         except:
-            return False
+            raise HTTPException(status_code=400, detail="db_error")
 
-print(registration(new_user))
 
 
     
