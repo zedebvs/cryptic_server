@@ -1,9 +1,7 @@
 from app import config 
-from app import data
 from datetime import datetime, timedelta
 from jose import jwt 
 
-User_data = data.User
 
 def create_access_token(User_data):
     to_encode = User_data.copy()

@@ -3,13 +3,13 @@ from app.utils import whitlists
 from app.utils import hash
 from app.data_base.models import User
 from app.data_base.db_setup import SessionLocal
-import time
+#import time
 
 
 test_new_user ={
-    "name" : "zedebvs31afsfsa211",
-    "email" : "zedebvs@g1ma312il.com123",
-    "password" : "zed12ljko3"
+    "name" : "zebvs31211",
+    "email" : "zedvs@g1ma312il.com123",
+    "password" : "zed12lj321ko3"
 }
 
 new_user = User(
