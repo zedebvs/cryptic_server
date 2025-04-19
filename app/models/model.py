@@ -9,3 +9,19 @@ class New_user(BaseModel):
     email: str
     password: str
 
+class Public_profile(BaseModel):
+    id: int
+    name: str
+    avatar: str 
+    status: str | None = None
+    #online: bool 
+    
+class Private_profile(BaseModel):
+    id: int
+    name: str
+    email: str
+    avatar: str 
+    status: str | None = None
+    
+class RefreshRequest(BaseModel):
+    refreshToken: str
