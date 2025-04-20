@@ -25,3 +25,6 @@ class Private_profile(BaseModel):
     
 class RefreshRequest(BaseModel):
     refreshToken: str
+
+class NewStatus(BaseModel):
+    status: str
