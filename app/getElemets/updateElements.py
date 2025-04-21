@@ -1,5 +1,5 @@
 from app.data_base.db_setup import SessionLocal
-from app.data_base.models import Private_profile, Public_profile
+from app.data_base.models import Private_profile, Public_profile, User
 from fastapi import HTTPException
 
 
@@ -28,3 +28,14 @@ def update_avatar(avatar, id):
         if profile:
             profile.avatar = avatar
             db.commit()
+
+async def change_name(id, json_data, websocket):
+    new_name = json_data.get("name")
+    with SessionLocal() as db:
+        user = db.query(User).filter(User.id == id).first()
+        if user:
+            user.name = new_name
+            db.commit()
+    print(f"Пользователь {id} сменил имя на {new_name}")
+    await websocket.send_text(f"Имя успешно изменено на {new_name}")
+

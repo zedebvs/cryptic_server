@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.data_base.db_setup import SessionLocal
 from app.security.jwt_auth import valid_token
-from app.data_base.models import User
+from app.data_base.models import User, Public_profile
 from app.getElemets.profile import getPublic_profile, getPrivate_profile
 from app.getElemets.updateElements import update_status, update_avatar
 from app.models.model import NewStatus
@@ -61,7 +61,16 @@ def upload_avatar(file: UploadFile = File(...), credentials: HTTPAuthorizationCr
     if extension not in allowed_extensions:
         raise HTTPException(status_code=400, detail="Неподдерживаемый формат файла")
     
-    new_filename = f"user_{payload['id']}_avatar.{extension}"
+    with SessionLocal() as db:
+        try:
+            user = db.query(Public_profile).filter(Public_profile.id == payload["id"]).first()
+        except Exception as e:
+            raise HTTPException(status_code=401, detail="invalid user")
+    if user.avatar != "default_avatar_3.png":
+        old_count = user.avatar.split("_")
+        new_count = int(old_count[2]) + 1
+    
+    new_filename = f"user_{payload['id']}_{new_count}_avatar.{extension}"
     file_location = f"app/static/avatars/{new_filename}"
     
     with open(file_location, "wb") as buffer:
