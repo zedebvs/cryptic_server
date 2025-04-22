@@ -3,9 +3,10 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.data_base.db_setup import SessionLocal
 from app.security.jwt_auth import valid_token
 from app.data_base.models import User, Public_profile
-from app.getElemets.profile import getPublic_profile, getPrivate_profile
-from app.getElemets.updateElements import update_status, update_avatar
+from app.getElements.profile import getPublic_profile, getPrivate_profile
+from app.getElements.updateElements import update_status, update_avatar
 from app.models.model import NewStatus
+from app.utils import search
 import shutil
 
 
@@ -79,3 +80,9 @@ def upload_avatar(file: UploadFile = File(...), credentials: HTTPAuthorizationCr
     update_avatar(new_filename, payload['id'])
 
     return {"filename": new_filename}
+
+from app.utils import search
+
+@profile_router.get("/search")
+def search_profiles(query: str):
+    return search.search_users(query)

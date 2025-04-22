@@ -14,7 +14,7 @@ class Public_profile(BaseModel):
     name: str
     avatar: str 
     status: str | None = None
-    #online: bool 
+    online: int 
     
 class Private_profile(BaseModel):
     id: int
@@ -22,6 +22,7 @@ class Private_profile(BaseModel):
     email: str
     avatar: str 
     status: str | None = None
+    online: int 
     
 class RefreshRequest(BaseModel):
     refreshToken: str

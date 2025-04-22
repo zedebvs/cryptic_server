@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
-from app.data_base.db_setup import Base, engine
+from app.data_base.db_setup import Base
 
 class User(Base):
     __tablename__ = "users_"
@@ -19,6 +19,7 @@ class Public_profile(Base):
     id = Column(Integer, ForeignKey("users_.id", ondelete="CASCADE"), primary_key=True, index=True)
     avatar = Column(String, default="default_avatar_3.png")
     status = Column(String, nullable=True)
+    online = Column(Integer, default=0)
 
     user = relationship("User", back_populates="public_profile")
     
@@ -28,6 +29,7 @@ class Private_profile(Base):
     id = Column(Integer, ForeignKey("users_.id", ondelete="CASCADE"), primary_key=True, index=True)
     avatar = Column(String, default="default_avatar_3.png")
     status = Column(String, nullable=True)
+    online = Column(Integer, default=0)
     
     user = relationship("User", back_populates="private_profile")
 

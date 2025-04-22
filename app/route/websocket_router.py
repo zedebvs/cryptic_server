@@ -1,8 +1,13 @@
 import json
-from app.webSockets import websocket_manager
+from app.webSockets.websocket_manager import WebSocketManager
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException
 from app.security.jwt_auth import valid_token
-from app.getElemets import updateElements
+from app.getElements import updateElements
+from app.utils import user_online
+import logging
+
+logger = logging.getLogger("uvicorn.error")
+
 router = APIRouter()
 
 @router.websocket("/ws/chat")
@@ -15,7 +20,8 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         payload = valid_token(token)
         user_id = payload["id"]
-        print(f"[WebSocket] Пользователь {user_id} подключился")
+        await user_online.online(user_id)
+        logger.info(f"[WebSocket] Пользователь {user_id} подключился")
         while True:
             data = await websocket.receive_text()
             json_data = json.loads(data)
@@ -28,7 +34,10 @@ async def websocket_endpoint(websocket: WebSocket):
                 await websocket.send_text("Unknown action")
 
     except WebSocketDisconnect:
-        print(f"[WebSocket] Пользователь {user_id} отключился")
+        await user_online.offline(user_id)
+        logger.info(f"[WebSocket] Пользователь {user_id} отключился")
     except Exception as e:
         print(f"Ошибка: {e}")
         await websocket.close()
+        
+
