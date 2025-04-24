@@ -13,7 +13,8 @@ def getPublic_profile(db, user_id):
         "name": public_profile.user.name,
         "avatar": avatar_url,
         "status": public_profile.status,
-        "online": public_profile.online
+        "online": public_profile.online,
+        "lastonline": public_profile.lastonline
     }
 
 def getPrivate_profile(db, user_id):

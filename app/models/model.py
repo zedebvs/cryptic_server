@@ -15,7 +15,8 @@ class Public_profile(BaseModel):
     avatar: str 
     status: str | None = None
     online: int 
-    
+    lastonline: str
+
 class Private_profile(BaseModel):
     id: int
     name: str

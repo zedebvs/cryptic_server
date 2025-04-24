@@ -11,7 +11,8 @@ def search_users(query):
             avatar=f"http://192.168.0.200:8000/static/avatars/{p.avatar}" if p.avatar else None,
             status=p.status,
             online=p.online,
-            name=p.user.name  
+            name=p.user.name,
+            lastonline=p.lastonline.isoformat() if p.lastonline else None  
         )
         for p in results
     ]

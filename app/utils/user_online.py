@@ -1,5 +1,7 @@
 from app.data_base.db_setup import SessionLocal
 from app.data_base.models import Private_profile, Public_profile, User
+from datetime import datetime
+print(datetime.isoformat(datetime.now()))
 
 async def online(user_id):
     with SessionLocal() as db:
@@ -20,3 +22,12 @@ async def offline(user_id):
             private_profile.online = max(private_profile.online - 1, 0)
             public_profile.online = max(public_profile.online - 1, 0)
             db.commit()
+
+def last_online(user_id):
+    with SessionLocal() as db:
+        profile = db.query(Public_profile).filter(Public_profile.id == user_id).first()
+        if profile:
+            if profile.online == 0:
+                profile.lastOnline = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-6]
+                db.commit()
+            
