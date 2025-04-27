@@ -86,3 +86,18 @@ from app.utils import search
 @profile_router.get("/search")
 def search_profiles(query: str):
     return search.search_users(query)
+
+@profile_router.get("/user_profile/{user_id}")
+def search_profiles(user_id: int,credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials  
+    payload = valid_token(token)
+
+    with SessionLocal() as db:
+        try:
+            user = db.query(User).filter(User.id == payload["id"]).first()
+            if not user:
+                raise HTTPException(status_code=401, detail="Invalid user")
+        except Exception as e:
+            raise HTTPException(status_code=401, detail="Invalid user")
+
+        return getPublic_profile(db, user_id)

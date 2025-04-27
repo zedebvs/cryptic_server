@@ -28,3 +28,4 @@ class WebSocketManager:
         for ws in self.active_connections.values():
             if ws.application_state == WebSocketState.CONNECTED:
                 await ws.send_text(message)
+                

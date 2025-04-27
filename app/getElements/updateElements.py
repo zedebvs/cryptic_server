@@ -3,6 +3,7 @@ from app.data_base.models import Private_profile, Public_profile, User
 from fastapi import HTTPException
 from app.utils import whitlists
 import logging
+from app.utils.send_online import send_chat_item_to_related_users
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -52,5 +53,6 @@ async def change_name(id, json_data, websocket):
             user.name = new_name
             db.commit()
     print(f"[WebSocket] Пользователь {id} сменил имя на {new_name}")
+    await send_chat_item_to_related_users(id)
     await websocket.send_text(f"Имя успешно изменено на {new_name}")
 
