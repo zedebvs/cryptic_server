@@ -23,7 +23,8 @@ async def offline(user_id):
             private_profile.online = max(private_profile.online - 1, 0)
             public_profile.online = max(public_profile.online - 1, 0)
             db.commit()
-    await send_chat_item_to_related_users(user_id)
+            if private_profile.online == 0 and public_profile.online == 0:
+                await send_chat_item_to_related_users(user_id)
 
 def last_online(user_id):
     with SessionLocal() as db:

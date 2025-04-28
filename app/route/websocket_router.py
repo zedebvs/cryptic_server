@@ -7,10 +7,12 @@ import logging
 from app.utils import user_online
 from app.getElements.chats import give_chats, load_messages, send_message, message_read
 import uuid
+from time import time#
 
 logger = logging.getLogger("uvicorn.error")
 
 router = APIRouter()
+last_ping = {}
 
 #active_connections = {} #
 
@@ -33,11 +35,19 @@ async def websocket_endpoint(websocket: WebSocket):
 
         await user_online.online(user_id)
         logger.info(f"[WebSocket] Пользователь {user_id} подключился")
+        
+        last_ping[session_id] = time()#
+        
         while True:
             data = await websocket.receive_text()
             json_data = json.loads(data)
             action = json_data.get("action")
-
+            ##
+            if action == "ping":
+                last_ping[session_id] = time.time()
+                print(f'PING от пользователя {user_id}')
+                continue
+            ##
             if action == "changeName":
                 await updateElements.change_name(user_id, json_data, websocket)
             elif action == "giveChats":
@@ -66,3 +76,17 @@ async def websocket_endpoint(websocket: WebSocket):
     except Exception as e:
         print(f"Ошибка: {e}")
         await websocket.close()
+        ##добавлено еще 1 удаление из бд при ошибке
+        if user_id in active_connections:
+            for session_id, ws in active_connections[user_id].items():
+                if ws == websocket:
+                    del active_connections[user_id][session_id]
+                    logger.info(f"[WebSocket] Пользователь {user_id} с session_id {session_id} отключился")
+                    break
+        await user_online.offline(user_id)
+        user_online.last_online(user_id)
+        
+        ##
+    finally:
+        if session_id in last_ping:
+            del last_ping[session_id]

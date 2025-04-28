@@ -263,3 +263,23 @@ async def message_read(json_data, websocket):
         
         else:
             return
+        
+async def update_chat_items_for_users(db, users_pairs: list[tuple[int, int]]):
+
+    for viewer_id, peer_id in users_pairs:
+        user_sessions = active_connections.get(viewer_id)
+        if not user_sessions:
+            continue
+
+        chat_item = get_chat_item(db, peer_id, viewer_id)  # peer_id показываем viewer_id
+        if not chat_item:
+            continue
+
+        for session_id, websocket in user_sessions.items():
+            try:
+                await websocket.send_json({
+                    "action": "updateChat",
+                    "data": chat_item
+                })
+            except Exception as e:
+                print(f"[Ошибка отправки updateChat пользователю {viewer_id}] {e}")
