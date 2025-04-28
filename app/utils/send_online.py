@@ -1,6 +1,6 @@
 from app.data_base.db_setup import SessionLocal
 from app.utils.active_connections import active_connections
-from app.getElements.chat import get_chat_item
+from app.getElements.chats import get_chat_item
 from app.getElements.profile import getPublic_profile
 
 async def send_chat_item_to_related_users(user_id: int):
@@ -17,7 +17,8 @@ async def send_chat_item_to_related_users(user_id: int):
                         "data": chat_item
                     })
 
-'''async def send_new_chat_item(user_id: int, recipient_id: int, websocket):
+
+async def send_new_chat_item(user_id: int, recipient_id: int, websocket):
     with SessionLocal() as db:
         profile = getPublic_profile(db, recipient_id)
         if profile["online"] == 0:
@@ -26,4 +27,4 @@ async def send_chat_item_to_related_users(user_id: int):
         await websocket.send_json({
                         "action": "updateChat",
                         "data": chat_item
-                    })'''
+                    })

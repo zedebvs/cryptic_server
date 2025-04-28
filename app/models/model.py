@@ -23,8 +23,8 @@ class Private_profile(BaseModel):
     email: str
     avatar: str 
     status: str | None = None
-    online: int 
-    
+    online: int
+
 class RefreshRequest(BaseModel):
     refreshToken: str
 

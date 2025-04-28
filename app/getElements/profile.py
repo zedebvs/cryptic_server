@@ -13,7 +13,7 @@ def getPublic_profile(db, user_id):
         "name": public_profile.user.name,
         "avatar": avatar_url,
         "status": public_profile.status,
-        "online": public_profile.online,
+	"online": public_profile.online,
         "lastonline": public_profile.lastonline
     }
 
@@ -22,7 +22,7 @@ def getPrivate_profile(db, user_id):
     if not private_profile:
         return None  
     
-    avatar_url = f"https://yourserver.com/static/avatars/{private_profile.avatar}" if private_profile.avatar else None
+    avatar_url = f"http://192.168.0.200:8000/static/avatars/{private_profile.avatar}" if private_profile.avatar else None
 
     
     return {
@@ -31,5 +31,5 @@ def getPrivate_profile(db, user_id):
         "email": private_profile.user.email,
         "avatar": avatar_url,
         "status": private_profile.status,
-        "online": private_profile.online
+	"online": private_profile.online
     }

@@ -4,13 +4,9 @@ from app.data_base.models import User
 from app.data_base.profiles import Create_public_profile, Create_private_profile
 from app.data_base.db_setup import SessionLocal
 from fastapi import HTTPException
-from app.getElemets import profile
+from app.getElements import profile
 
 
-respons_login = User(
-    name="admin1",
-    password="admin1234"
-)
 
 
 def chek_login(respons_login):
@@ -38,10 +34,3 @@ def chek_login(respons_login):
             return {"tokens" : tokens, "public_profile" : public_profile}
         
         raise HTTPException(status_code=401, detail="Invalid credentials")
-
-print(chek_login(respons_login))
-
-
-'''if respons_login.name is None or respons_login.password is None:
-    raise HTTPException(status_code=401, detail="Invalid credentials")
-'''

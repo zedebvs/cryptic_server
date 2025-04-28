@@ -7,20 +7,19 @@ from app.utils.send_online import send_chat_item_to_related_users
 
 logger = logging.getLogger("uvicorn.error")
 
-
 def update_status(status, id):
     with SessionLocal() as db:
         try:
             private_profile = db.query(Private_profile).filter(Private_profile.id == id).first()
             public_profile = db.query(Public_profile).filter(Public_profile.id == id).first()
-            if private_profile.name != public_profile.name:
-                raise HTTPException(status_code=404, detail="invalid user")
+            if private_profile.user.name != public_profile.user.name:
+                raise HTTPException(status_code=402, detail="invalid user")
             private_profile.status = status
             public_profile.status = status
             db.commit()
             return public_profile.status
         except Exception as e:
-            raise HTTPException(status_code=404, detail="invalid user")
+            raise HTTPException(status_code=402, detail="invalid user")
 
 def update_avatar(avatar, id):
     with SessionLocal() as db:
@@ -29,7 +28,7 @@ def update_avatar(avatar, id):
             profile.avatar = avatar
             db.commit()
     with SessionLocal() as db:
-        profile = db.query(Public_profile).filter(Public_profile.id == id).first()
+        profile = db.query(Private_profile).filter(Private_profile.id == id).first()
         if profile:
             profile.avatar = avatar
             db.commit()
@@ -55,4 +54,3 @@ async def change_name(id, json_data, websocket):
     print(f"[WebSocket] Пользователь {id} сменил имя на {new_name}")
     await send_chat_item_to_related_users(id)
     await websocket.send_text(f"Имя успешно изменено на {new_name}")
-

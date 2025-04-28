@@ -4,9 +4,12 @@ from app.data_base.db_setup import SessionLocal
 from app.data_base.models import Messages
 from datetime import datetime
 from app.data_base.models import MessageStatus
+#from app.utils.send_online import send_new_chat_item
+from app.utils.active_connections import active_connections
 
 async def give_chats(user_id: int, websocket):
     with SessionLocal() as db:
+
         last_messages = (
             db.query(Messages)
             .distinct(
@@ -21,18 +24,17 @@ async def give_chats(user_id: int, websocket):
             )
             .all()
         )
-        print(f"обьекты из бд: {last_messages}\n")
+
         response_data = []
-        
+
         for msg in last_messages:
             peer_id = msg.recipient_id if msg.sender_id == user_id else msg.sender_id
             profile = getPublic_profile(db, peer_id)
-            print(f'профиль: {profile}')
             if profile:
                 combined_data = {
                     "id": str(msg.id),
                     "text": msg.message,
-                    "timestamp": msg.timestamp.isoformat(),
+                    "timestamp":  msg.timestamp.isoformat() if msg.timestamp else None,
                     "status": msg.status.value,
                     "sender_id": msg.sender_id,
                     "recipient_id": msg.recipient_id,
@@ -41,14 +43,15 @@ async def give_chats(user_id: int, websocket):
                     "avatar": profile["avatar"],
                     "profile_status": profile["status"],
                     "online": profile["online"],
-                    "lastonline": profile["lastonline"]
+                    "lastonline": profile["lastonline"].isoformat() if profile["lastonline"] else None
                 }
                 response_data.append(combined_data)
-
+        print(f'пользователь {user_id} получил список своих чатов')
         await websocket.send_json({
             "action": "chats",
             "data": response_data
         })
+
 
 def get_chat_item(db, peer_id: int, for_user_id: int) -> dict | None:
     msg = (
@@ -65,14 +68,14 @@ def get_chat_item(db, peer_id: int, for_user_id: int) -> dict | None:
     if not msg:
         return None
 
-    profile = getPublic_profile(db, peer_id)
+    profile = getPublic_profile(db, for_user_id)
     if not profile:
         return None
 
     return {
         "id": str(msg.id),
         "text": msg.message,
-        "timestamp": msg.timestamp.isoformat(),
+        "timestamp": msg.timestamp.isoformat() if msg.timestamp else None,
         "status": msg.status.value,
         "sender_id": msg.sender_id,
         "recipient_id": msg.recipient_id,
@@ -81,10 +84,11 @@ def get_chat_item(db, peer_id: int, for_user_id: int) -> dict | None:
         "avatar": profile["avatar"],
         "profile_status": profile["status"],
         "online": profile["online"],
-        "lastonline": profile["lastonline"]
+        "lastonline": profile["lastonline"].isoformat() if profile["lastonline"] else None
+
     }
-    
-    
+
+
 async def load_messages(user_id: int, json_data: dict, websocket):
     recipient_id = json_data.get("recipient_id")
     if not recipient_id:
@@ -103,7 +107,7 @@ async def load_messages(user_id: int, json_data: dict, websocket):
         "avatar": profile["avatar"],
         "profile_status": profile["status"],
         "online": profile["online"],
-        "lastonline": profile["lastonline"]
+        "lastonline": profile["lastonline"].isoformat() if profile["lastonline"] else None
         }
         
         messages_query = (
@@ -128,7 +132,7 @@ async def load_messages(user_id: int, json_data: dict, websocket):
                 "sender_id": msg.sender_id,
                 "recipient_id": msg.recipient_id,
                 "text": msg.message,
-                "timestamp": msg.timestamp.isoformat(),
+                "timestamp": msg.timestamp.isoformat() if msg.timestamp else None,
                 "status": msg.status.value,
                 "is_edited": msg.is_edited,
                 "reaction": msg.reaction,
@@ -141,7 +145,9 @@ async def load_messages(user_id: int, json_data: dict, websocket):
             "data": response_data,
             "profile": profile_user
         })
-        
+
+
+
 async def send_message(user_id, json_data, websocket):
     recipient_id = json_data.get("recipient_id")
     message_text = json_data.get("message")
@@ -168,16 +174,18 @@ async def send_message(user_id, json_data, websocket):
                 "id": str(new_message.id),
                 "sender_id": new_message.sender_id,
                 "recipient_id": new_message.recipient_id,
-                "message": new_message.message,
+                "text": new_message.message,
                 "timestamp": new_message.timestamp.isoformat(),
                 "status": new_message.status.value,
                 "is_edited": new_message.is_edited
             }
         })
-        print(f"Пользователь {user_id} отправил сообщение пользователю {recipient_id}")
-        
-        chat_item = get_chat_item(db, recipient_id, user_id)
+
         for uid in [user_id, recipient_id]:
+            if uid == user_id:
+                chat_item = get_chat_item(db, user_id, recipient_id)
+            else:
+                chat_item = get_chat_item(db, recipient_id, user_id)
             user_sessions = active_connections.get(uid)
             if user_sessions:
                 for session_id, user_ws in user_sessions.items():
@@ -188,8 +196,8 @@ async def send_message(user_id, json_data, websocket):
                         })
                     except Exception as e:
                         print(f"Ошибка отправки updateChat пользователю {uid}: {e}")
-        
-        from app.utils.active_connections import active_connections
+
+        print(f"Пользователь {user_id} отправил сообщение пользователю {recipient_id}")
 
         recipient_sessions = active_connections.get(recipient_id)
 
@@ -202,7 +210,7 @@ async def send_message(user_id, json_data, websocket):
                             "id": str(new_message.id),
                             "sender_id": new_message.sender_id,
                             "recipient_id": new_message.recipient_id,
-                            "message": new_message.message,
+                            "text": new_message.message,
                             "timestamp": new_message.timestamp.isoformat(),
                             "status": new_message.status.value,
                             "is_edited": new_message.is_edited
@@ -210,4 +218,48 @@ async def send_message(user_id, json_data, websocket):
                     })
                 except Exception as e:
                     print(f"Ошибка отправки пользователю {recipient_id}: {e}")
+
+
+async def message_read(json_data, websocket):
+    message_id = json_data.get("message_id")
+    if not message_id:
+        return
+    with SessionLocal() as db:
+        message = db.query(Messages).filter(Messages.id == message_id).first()
+        if message:
+            message.status = MessageStatus.READ
+            db.commit()
+            
+            sender = message.sender_id
+            recipient = message.recipient_id
+            print(f'Пользователь {sender} прочитал сообщение {message_id} пользователя {recipient}')
+            for uid in [recipient, sender]:
+                if uid == recipient:
+                    chat_item = get_chat_item(db, sender, recipient)
+                else:
+                    chat_item = get_chat_item(db, recipient, sender)
+                user_sessions = active_connections.get(uid)
+                if user_sessions:
+                    for session_id, user_ws in user_sessions.items():
+                        try:
+                            await user_ws.send_json({
+                                "action": "message_read",
+                                "data": {
+                                    "id": str(message.id),
+                                    "sender_id": message.sender_id,
+                                    "recipient_id": message.recipient_id,
+                                    "message": message.message,
+                                    "timestamp": message.timestamp.isoformat(),
+                                    "status": message.status.value,
+                                    "is_edited": message.is_edited
+                                }
+                            })
+                            await user_ws.send_json({
+                                "action": "updateChat",
+                                "data": chat_item
+                            })
+                        except Exception as e:
+                            print(f"Ошибка отправки updateChat пользователю {uid}: {e}")
         
+        else:
+            return

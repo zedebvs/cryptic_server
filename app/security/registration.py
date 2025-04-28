@@ -5,11 +5,6 @@ from app.data_base.db_setup import SessionLocal
 from app.data_base.profiles import Create_public_profile,Create_private_profile
 from fastapi import HTTPException
 
-new_user = User(
-    name="admi1n11",
-    email="admin@yandex.co1m11",
-    password="admin1234"
-)
 
 def registration(new_user):
     with SessionLocal() as db:
@@ -50,6 +45,5 @@ def registration(new_user):
             db.rollback()
             raise HTTPException(status_code=500, detail=f"db_error: {str(e)}")
 
-registration(new_user)
 
     

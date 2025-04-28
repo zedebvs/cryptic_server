@@ -9,8 +9,6 @@ from app.models.model import NewStatus
 from app.utils import search
 import shutil
 
-
-
 profile_router = APIRouter() 
 security = HTTPBearer()
 
@@ -42,7 +40,8 @@ def post_PrivateProfile(credentials: HTTPAuthorizationCredentials = Depends(secu
             raise HTTPException(status_code=401, detail="invalid user")
         return getPrivate_profile(db, user_id)
 
-@profile_router.get("/Status")
+
+@profile_router.post("/Status")
 def update_Status(request: NewStatus, credentials: HTTPAuthorizationCredentials = Depends(security)):
     token = credentials.credentials  
     payload = valid_token(token)
@@ -61,7 +60,6 @@ def upload_avatar(file: UploadFile = File(...), credentials: HTTPAuthorizationCr
     extension = filename.split(".")[-1].lower()
     if extension not in allowed_extensions:
         raise HTTPException(status_code=400, detail="Неподдерживаемый формат файла")
-    
     with SessionLocal() as db:
         try:
             user = db.query(Public_profile).filter(Public_profile.id == payload["id"]).first()
@@ -70,7 +68,8 @@ def upload_avatar(file: UploadFile = File(...), credentials: HTTPAuthorizationCr
     if user.avatar != "default_avatar_3.png":
         old_count = user.avatar.split("_")
         new_count = int(old_count[2]) + 1
-    
+    else:
+        new_count = 1
     new_filename = f"user_{payload['id']}_{new_count}_avatar.{extension}"
     file_location = f"app/static/avatars/{new_filename}"
     
@@ -81,11 +80,13 @@ def upload_avatar(file: UploadFile = File(...), credentials: HTTPAuthorizationCr
 
     return {"filename": new_filename}
 
-from app.utils import search
 
 @profile_router.get("/search")
-def search_profiles(query: str):
+def search_profiles(query: str, credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials  
+    payload = valid_token(token)
     return search.search_users(query)
+
 
 @profile_router.get("/user_profile/{user_id}")
 def search_profiles(user_id: int,credentials: HTTPAuthorizationCredentials = Depends(security)):

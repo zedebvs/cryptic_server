@@ -2,9 +2,8 @@ from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, UUID, Bool
 from sqlalchemy.orm import relationship
 from app.data_base.db_setup import Base, engine
 import uuid
-from enum import Enum as PyEnum 
-from sqlalchemy import Enum as SQLEnum 
-
+from enum import Enum as PyEnum
+from sqlalchemy import Enum as SQLEnum
 
 class User(Base):
     __tablename__ = "users_"
@@ -16,10 +15,8 @@ class User(Base):
     
     public_profile = relationship("Public_profile", back_populates="user", uselist=False, cascade="all, delete-orphan")
     private_profile = relationship("Private_profile", back_populates="user", uselist=False, cascade="all, delete-orphan")
-    messages = relationship("Messages", back_populates="user", cascade="all, delete-orphan")
-    sent_messages = relationship("Messages", back_populates="sender", cascade="all, delete-orphan")
-    received_messages = relationship("Messages", back_populates="recipient", cascade="all, delete-orphan")
-
+    sent_messages = relationship("Messages", back_populates="sender", foreign_keys="Messages.sender_id")
+    received_messages = relationship("Messages", back_populates="recipient", foreign_keys="Messages.recipient_id")
 
 class Public_profile(Base):
     __tablename__ = "public_profile"
@@ -65,6 +62,8 @@ class Messages(Base):
     
     sender = relationship("User", foreign_keys=[sender_id], back_populates="sent_messages")
     recipient = relationship("User", foreign_keys=[recipient_id], back_populates="received_messages")
-    
-    
+
+
 #Base.metadata.create_all(engine)
+
+
