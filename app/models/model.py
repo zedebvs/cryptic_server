@@ -30,3 +30,10 @@ class RefreshRequest(BaseModel):
 
 class NewStatus(BaseModel):
     status: str
+
+
+class PublicRSA(BaseModel):
+    key: str
+
+class AesChipherKey(BaseModel):
+    key: str

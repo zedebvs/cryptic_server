@@ -8,7 +8,7 @@ def search_users(query):
         return [
         model.Public_profile(
             id=p.id,
-            avatar=f"http://192.168.0.200:8000/static/avatars/{p.avatar}" if p.avatar else None,
+            avatar=f"https://192.168.0.222/static/avatars/{p.avatar}" if p.avatar else None,
             status=p.status,
             online=p.online,
             name=p.user.name,  

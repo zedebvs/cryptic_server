@@ -5,8 +5,10 @@ from app.security.jwt_auth import valid_token
 from app.data_base.models import User, Public_profile
 from app.getElements.profile import getPublic_profile, getPrivate_profile
 from app.getElements.updateElements import update_status, update_avatar
-from app.models.model import NewStatus
+from app.models.model import NewStatus, PublicRSA
 from app.utils import search
+from app.utils import RSA_2048
+import base64
 import shutil
 
 profile_router = APIRouter() 
@@ -102,3 +104,14 @@ def search_profiles(user_id: int,credentials: HTTPAuthorizationCredentials = Dep
             raise HTTPException(status_code=401, detail="Invalid user")
 
         return getPublic_profile(db, user_id)
+
+
+@profile_router.post("/Public_key")
+def getAES_256_key(request: PublicRSA, credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials  
+    payload = valid_token(token)
+    
+    User_id = payload["id"]
+    public_key_bytes = base64.b64decode(request.key)
+    
+    return RSA_2048.RSA_encrypt(User_id, public_key_bytes)
